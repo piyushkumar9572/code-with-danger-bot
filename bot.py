@@ -1,7 +1,12 @@
+import os
+
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
-TOKEN = ""
+TOKEN = os.getenv("BOT_TOKEN")
+
+if not TOKEN:
+    raise RuntimeError("BOT_TOKEN environment variable is missing")
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -26,7 +31,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
+
     await query.answer()
+
     if query.data == "coding":
         keyboard = [
             [
@@ -51,10 +58,16 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     elif query.data == "dsa":
-        await query.message.reply_video(
-            video=open("hero.mp4", "rb"),
-            caption="📊 DSA Video\n\n🎓 Data Structures & Algorithms"
-        )
+        try:
+            with open("hero.mp4", "rb") as video:
+                await query.message.reply_video(
+                    video=video,
+                    caption="📊 DSA Video\n\n🎓 Data Structures & Algorithms"
+                )
+        except FileNotFoundError:
+            await query.message.reply_text(
+                "❌ DSA video file nahi mili."
+            )
 
     elif query.data == "dbms":
         await query.edit_message_text(
@@ -140,6 +153,7 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "    return 0;\n"
             "}"
         )
+
     elif query.data == "notes":
         keyboard = [
             [
@@ -199,6 +213,7 @@ def main():
     app.add_handler(CallbackQueryHandler(button_click))
 
     print("🤖 Bot is running...")
+
     app.run_polling()
 
 
